@@ -3,22 +3,23 @@
 
 using namespace sf;
 
-Vector2f blocks[100];
-Vector2f ballPos = { 300,300 };
+Sprite blocks[100], ball, paddle;
 float dx = 6, dy = 5;
+int N = 100;
 
 void draw(RenderWindow& app);
 void CreateBlocks();
 void Move();
+bool isCollide(Sprite s1, Sprite s2);
 
 int main()
 {
 	RenderWindow app(VideoMode(520, 450), "Arknoid Game!");
 	app.setFramerateLimit(60);
-
+	ball.setPosition(300, 300);
+	CreateBlocks();
 	while (app.isOpen())
 	{
-		CreateBlocks();
 		Event e;
 		while (app.pollEvent(e))
 		{
@@ -40,18 +41,19 @@ void draw(RenderWindow& app)
 	t2.loadFromFile("images/background.jpg");
 	t3.loadFromFile("images/ball.png");
 	t4.loadFromFile("images/paddle.png");
-	Sprite block(t1), bk(t2), ball(t3), paddle(t4);
+	Sprite bk(t2);
 
+	ball.setTexture(t3);
+	paddle.setTexture(t4);
 	paddle.setPosition(300, 440);
-	ball.setPosition(ballPos.x, ballPos.y);
 	app.clear();
 	app.draw(bk);
 	app.draw(paddle);
 	app.draw(ball);
 	for (int i = 0; i < 100; i++)
 	{
-		block.setPosition(blocks[i].x * 43, blocks[i].y * 20);
-		app.draw(block);
+		blocks[i].setTexture(t1);
+		app.draw(blocks[i]);
 	}
 	app.display();
 }
@@ -64,8 +66,7 @@ void CreateBlocks()
 	{
 		for (int j = 1; j <= 10; j++)
 		{
-			blocks[n].x = i;
-			blocks[n].y = j;
+			blocks[n].setPosition(i * 43, j * 20);
 			n++;
 		}
 	}
@@ -74,10 +75,33 @@ void CreateBlocks()
 //ÇòµÄÒÆ¶¯
 void Move()
 {
-	ballPos.x += dx;
-	ballPos.y += dy;
+	ball.move(dx, 0);
+	for (int i = 0; i < N; i++)
+	{
+		if (isCollide(ball, blocks[i]))
+		{
+			blocks[i].setPosition(-100, 0);
+			dx = -dx;
+		}
+	}
+	ball.move(0, dy);
+	for (int i = 0; i < N; i++)
+	{
+		if (isCollide(ball, blocks[i]))
+		{
+			blocks[i].setPosition(-100, 0);
+			dy = -dy;
+		}
+	}
+	Vector2f ballPos = ball.getPosition();
 	if (ballPos.x < 0 || ballPos.x>520)
 		dx = -dx;
 	if (ballPos.y < 0 || ballPos.y>450)
 		dy = -dy;
+}
+
+//¼ì²âÅö×²
+bool isCollide(Sprite s1, Sprite s2)
+{
+	return s1.getGlobalBounds().intersects(s2.getGlobalBounds());
 }
